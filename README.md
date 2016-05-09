@@ -1,3 +1,3 @@
 # org.geppetto.python
 
-Python package for interfacing with the [geppetto](www.geppetto.org) simulation engine.
+Python package for interfacing with the [geppetto](http://www.geppetto.org) simulation engine.
