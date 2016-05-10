@@ -8,9 +8,10 @@ from toposort import toposort_flatten
 
 class GeppettoModel(object):
     """
-    This class is intended to be used by an (generated) "intermediate" module that dynamically
-    creates and exports library (json) specific classes - shielding the user from
-    directly instantiating this class for a particular lib (json).
+        This class is intended to be used by an "intermediate" (generated)
+        module that dynamically creates and exports library (json) specific
+        classes shielding the user from directly instantiating this class for a
+        particular lib (json).
     """
 
     def __init__(self, json_file):
@@ -54,14 +55,14 @@ class GeppettoModel(object):
 
     def get_reference(self, referenced):
         """
-            This function generates the reference for a given node inside the JSON
-            E.g. {"eClass":"Type"...} -> "//@libraries.1/@types.2"
-        """
+            This function generates the reference for a given node inside the
+            JSON E.g. {"eClass":"Type"...} -> "//@libraries.1/@types.2" """
         pass
 
     def resolve_reference(self, refstring):
         """
-            This function resolves a reference and returns an object inside the JSON data
+            This function resolves a reference and returns an object inside
+            the JSON data
             E.g. "//@libraries.1/@types.2" -> {"eClass":"Type"...}
 
             @libraries.0/@types.20/@variables.5/@anonymousTypes.0/@variables.7
@@ -79,6 +80,12 @@ class GeppettoModel(object):
 
         return ref
 
+    def supertypes(self, type_name):
+        deps = tuple(self.domain_types[d]
+                     for d in self.dependency_graph[type_name])
+        supertypes = deps if len(deps) > 0 else (object,)
+        return supertypes
+
     def generate_py_type(self, type_name):
         def init(self, iid=None, name=''):
             if iid is None:
@@ -88,15 +95,13 @@ class GeppettoModel(object):
             print('New instance of type  [', self.__class__.__name__,
                   tuple(b.__name__ for b in self.__class__.__bases__),
                   '], id:', self.id, 'name:', name)
-            #g.new_instance(self.id, self.name, self)
+            # g.new_instance(self.id, self.name, self)
         namespace = {}
         namespace['__init__'] = init
         namespace['_ids'] = count(0)
         namespace['supertypes'] = self.dependency_graph[type_name]
-        deps = tuple(self.domain_types[d]
-                     for d in self.dependency_graph[type_name])
-        supertypes = deps if len(deps) > 0 else (object,)
-        return type(type_name, supertypes, namespace)
+
+        return type(type_name, self.supertypes(type_name), namespace)
 
     def generate_all_py_types(self):
         for t in map(str, toposort_flatten(self.dependency_graph)):
