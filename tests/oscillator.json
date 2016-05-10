@@ -1,0 +1,171 @@
+{
+  "eClass": "GeppettoModel",
+  "id": "",
+  "name": "",
+  "libraries": [{
+    "eClass": "GeppettoLibrary",
+    "id": "",
+    "name": "",
+    "types": [{
+      "eClass": "CompositeType",
+      "id": "oscillator",
+      "name": "oscillator",
+      "abstract": false,
+      "variables": [{
+        "eClass": "Variable",
+        "id": "",
+        "name": "x",
+        "static": false,
+        "types": [{
+          "$ref": "//@libraries.1/@types.2"
+        }]
+      }, {
+        "eClass": "Variable",
+        "id": "v",
+        "name": "v",
+        "static": false,
+        "types": [{
+          "$ref": "//@libraries.1/@types.2"
+        }]
+      }, {
+        "eClass": "Variable",
+        "id": "omega0squared",
+        "name": "omega0squared",
+        "static": false,
+        "types": [{
+          "$ref": "//@libraries.1/@types.0"
+        }]
+      }, {
+        "eClass": "Variable",
+        "id": "v_dynamics",
+        "name": "v_dynamics",
+        "static": false,
+        "types": [{
+          "$ref": "//@libraries.1/@types.1"
+        }],
+        "initialValues": [{
+          "key": null,
+          "value": {
+            "eClass": "Dynamics",
+            "initialCondition": {
+              "eClass": "PhysicalQuantity",
+              "scalingFactor": 0,
+              "value": 0.0
+            },
+            "dynamics": {
+              "eClass": "Function",
+              "arguments": [{
+                "eClass": "Argument",
+                "argument": ""
+              }],
+              "expression": {
+                "eClass": "UnaryMinus",
+                "expression": {
+                  "eClass": "Mult",
+                  "left": {
+                    "eClass": "Pointer",
+                    "elements": [{
+                      "eClass": "PointerElement",
+                      "index": -1,
+                      "variable": {
+                        "$ref": "//@libraries.0/@types.0/@variables.2"
+                      },
+                      "type": {
+                        "$ref": "//@libraries.1/@types.0"
+                      }
+                    }]
+                  },
+                  "right": {
+                    "eClass": "Pointer",
+                    "elements": [{
+                      "eClass": "PointerElement",
+                      "index": -1,
+                      "variable": {
+                        "$ref": "//@libraries.0/@types.0/@variables.0"
+                      },
+                      "type": {
+                        "$ref": "//@libraries.1/@types.2"
+                      }
+                    }]
+                  }
+                }
+              }
+            }
+          }
+        }]
+      }]
+    }, {
+      "eClass": "CompositeType",
+      "id": "aSpecialOcillator",
+      "name": "aSpecialOcillator",
+      "superType": [{
+        "$ref": "//@libraries.0/@types.0"
+      }],
+      "abstract": false,
+      "variables": [{
+        "eClass": "Variable",
+        "id": "",
+        "name": "xx",
+        "static": false,
+        "types": [{
+          "$ref": "//@libraries.1/@types.2"
+        }]
+      }]
+    }]
+  }, {
+    "eClass": "GeppettoLibrary",
+    "id": "common",
+    "name": "Geppetto Common Library",
+    "types": [{
+      "eClass": "ParameterType",
+      "id": "Parameter",
+      "name": "Parameter",
+      "abstract": false
+    }, {
+      "eClass": "DynamicsType",
+      "id": "Dynamics",
+      "name": "Dynamics",
+      "abstract": false
+    }, {
+      "eClass": "StateVariableType",
+      "id": "StateVariable",
+      "name": "State Variable",
+      "abstract": false
+    }, {
+      "eClass": "HTMLType",
+      "id": "HTML",
+      "name": "HTML",
+      "abstract": false
+    }, {
+      "eClass": "URLType",
+      "id": "URL",
+      "name": "URL",
+      "abstract": false
+    }, {
+      "eClass": "TextType",
+      "id": "Text",
+      "name": "Text",
+      "abstract": false
+    }, {
+      "eClass": "PointType",
+      "id": "Point",
+      "name": "Point",
+      "abstract": false
+    }, {
+      "eClass": "ExpressionType",
+      "id": "Expression",
+      "name": "Expression",
+      "abstract": false
+    }, {
+      "eClass": "VisualType",
+      "id": "Visual",
+      "name": "Visual",
+      "abstract": false
+    }, {
+      "eClass": "PointerType",
+      "id": "Pointer",
+      "name": "Pointer",
+      "abstract": false
+    }]
+  }]
+}
