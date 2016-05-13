@@ -4,8 +4,8 @@
   "name": "",
   "libraries": [{
     "eClass": "GeppettoLibrary",
-    "id": "",
-    "name": "",
+    "id": "oscillator_lib",
+    "name": "An example lib with two silly types",
     "types": [{
       "eClass": "CompositeType",
       "id": "oscillator",
