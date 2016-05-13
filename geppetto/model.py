@@ -77,15 +77,11 @@ class GeppettoModel(object):
     def supertypes(self, json_type):
         supers = set()
         for super_ref in map(str, json_type.get('superType', [])):
-            try:
-                super_type = self.type_registry[super_ref]
-            except KeyError:
-                print ('generating', json_type['name'], 'from supertypes')
-                super_type = self.generate_type(self.resolve_reference(super_ref))
-            supers.add(super_type)
+            json_type = self.resolve_reference(super_ref)
+            supers.add(self.get_python_type(json_type))
         return tuple(supers) if len(supers) > 0 else (object,)
 
-    def generate_type(self, json_type):
+    def get_python_type(self, json_type):
         type_ref = self.get_reference_to(json_type)
         try:
             ty = self.type_registry[type_ref]
@@ -110,15 +106,15 @@ class GeppettoModel(object):
         namespace['__init__'] = init
         namespace['_ids'] = count(0)
         # namespace['_json_wrapper'] = self
-        # namespace.update(self.type_properties(type_name))
+        # namespace.update(self.type_properties(json_type))
         return type(type_name, self.supertypes(json_type), namespace)
 
-    def generate_types_in_library(self, lib):
-        return (self.generate_type(ty) for ty in lib['types'])
+    def types_in_library(self, lib):
+        return (self.get_python_type(ty) for ty in lib['types'])
 
     def generate_lib(self, lib):
         module = imp.new_module(lib['id'])
-        for ty in self.generate_types_in_library(lib):
+        for ty in self.types_in_library(lib):
             setattr(module, ty.__name__, ty)
         return module
 
