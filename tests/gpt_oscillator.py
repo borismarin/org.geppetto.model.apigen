@@ -11,4 +11,4 @@ from geppetto.model import GeppettoModel
 # dynamic classes are added to this modules' globals, so that the library can
 # be used via "import lib" or "from lib import *"
 _g = GeppettoModel(join(dirname(abspath(__file__)), 'oscillator.json'))
-globals().update(_g.domain_types)
+globals().update(_g.libs)

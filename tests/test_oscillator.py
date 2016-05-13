@@ -1,4 +1,4 @@
-import gpt_oscillator as lib
+from gpt_oscillator import oscillator_lib as lib
 
 
 def test_dynamic_types():
@@ -16,4 +16,5 @@ def test_default_ids():
 
 def test_type_inheritance():
     so = lib.aSpecialOcillator()
+    assert(isinstance(so, lib.aSpecialOcillator))  # d'uh!
     assert(isinstance(so, lib.oscillator))

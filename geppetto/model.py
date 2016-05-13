@@ -1,41 +1,29 @@
 from __future__ import print_function
+import imp
 import re
 from itertools import count
 import json
-
-from toposort import toposort_flatten
 
 
 class GeppettoModel(object):
     """
         This class is intended to be used by an "intermediate" (generated)
-        module that dynamically creates and exports library (json) specific
-        classes shielding the user from directly instantiating this class for a
-        particular lib (json).
+        module that dynamically creates and exports library-specific classes,
+        shielding users from directly instantiating GeppettoModel('lib.json')
+        for a particular lib.
     """
 
     def __init__(self, json_file):
         with open(json_file) as data_file:
-            self.data = json.load(data_file)
-            self.domain_types = {}
-            self.dependency_graph = self.build_dependency_graph()
-            self.generate_all_py_types()
-
-    def build_dependency_graph(self):
-        deps = {}
-        for ty in self.all_types():
-            supers = (self.resolve_reference(str(sup['$ref']))['name']
-                      for sup in ty.get('superType', []))
-            deps[ty['name']] = set(supers)
-        return deps
-
-    def all_types(self):
-        return (ty for lib in self.data['libraries'] for ty in lib['types'])
+            self.json_data = json.load(data_file)
+            self.type_registry = {}
+            # self.dependency_graph = self.build_dependency_graph()
+            self.libs = self.generate_all_libs()
 
     def new_instance(self, iid, iname, itype):
-        if 'variables' not in self.data:
-            self.data.variables = []
-        self.data['variables'].append(self.new_variable(iid, iname, itype))
+        if 'variables' not in self.json_data:
+            self.json_data['variables'] = []
+        self.json_data['variables'].append(self.new_variable(iid, iname, itype))
 
     def new_variable(self, vid, name, vtype):
         return {'eClass': 'Variable', 'id': vid, 'name': name, 'type': vtype}
@@ -51,58 +39,89 @@ class GeppettoModel(object):
 
     def dump_to_file(self, filename):
         with open(filename, 'w') as outfile:
-            json.dump(self.data, outfile)
+            json.dump(self.json_data, outfile)
 
-    def get_reference(self, referenced):
+    def get_reference_to(self, referenced):
         """
-            This function generates the reference for a given node inside the
-            JSON E.g. {"eClass":"Type"...} -> "//@libraries.1/@types.2" """
-        pass
+            Generates a reference string for a given node inside the
+            JSON E.g. {"eClass":"Type"...} -> "//@libraries.1/@types.2"
+        """
+        def finder(iterable):
+            if isinstance(iterable, dict):
+                for k, v in iterable.iteritems():
+                    if finder(v):
+                        return '/@' + str(k) + '.' + finder(v)
+            elif isinstance(iterable, list):
+                if referenced in iterable:
+                    return str(iterable.index(referenced))  # stop recursion
+                else:
+                    for idx, it in enumerate(iterable):
+                        if finder(it):
+                            return str(idx) + finder(it)
+        return '/' + finder(self.json_data)
 
     def resolve_reference(self, refstring):
         """
-            This function resolves a reference and returns an object inside
-            the JSON data
+            Resolve geppetto JSON reference syntax into dictionary
             E.g. "//@libraries.1/@types.2" -> {"eClass":"Type"...}
-
-            @libraries.0/@types.20/@variables.5/@anonymousTypes.0/@variables.7
-            @libraries.1/@types.5
-            @tags.1/@tags.5
-            @libraries.0/@types.8/@visualGroups.0/@visualGroupElements.1
-
         """
         def access(dic, key, idx):
             return dic[key][idx]
 
-        ref = self.data
-        for k, i in re.findall("([a-zA-Z]*)\.(\d*)", refstring):
+        ref = self.json_data
+        for k, i in re.findall('([a-zA-Z]*)\.(\d*)', refstring):
             ref = access(ref, k, int(i))
 
         return ref
 
-    def supertypes(self, type_name):
-        deps = tuple(self.domain_types[d]
-                     for d in self.dependency_graph[type_name])
-        supertypes = deps if len(deps) > 0 else (object,)
-        return supertypes
+    def supertypes(self, json_type):
+        supers = set()
+        for super_ref in map(str, json_type.get('superType', [])):
+            try:
+                super_type = self.type_registry[super_ref]
+            except KeyError:
+                print ('generating', json_type['name'], 'from supertypes')
+                super_type = self.generate_type(self.resolve_reference(super_ref))
+            supers.add(super_type)
+        return tuple(supers) if len(supers) > 0 else (object,)
 
-    def generate_py_type(self, type_name):
-        def init(self, iid=None, name=''):
+    def generate_type(self, json_type):
+        type_ref = self.get_reference_to(json_type)
+        try:
+            ty = self.type_registry[type_ref]
+        except KeyError:
+            ty = self.json_type_to_py_type(json_type)
+            self.type_registry[type_ref] = ty
+        return ty
+
+    def json_type_to_py_type(self, json_type):
+        type_name = str(json_type['name'])
+
+        def init(selfish, iid=None, name=''):
             if iid is None:
-                self.id = type_name + '_' + str(self._ids.next())
+                selfish.id = type_name + '_' + str(selfish._ids.next())
             else:
-                self.id = iid
-            print('New instance of type  [', self.__class__.__name__,
-                  tuple(b.__name__ for b in self.__class__.__bases__),
-                  '], id:', self.id, 'name:', name)
-            # g.new_instance(self.id, self.name, self)
+                selfish.id = iid
+            print('New instance of type  [', selfish.__class__.__name__,
+                  tuple(b.__name__ for b in selfish.__class__.__bases__),
+                  '], id:', selfish.id, 'name:', name)
+            # selfish._json_wrapper.new_instance(selfish.id, selfish.name,)
         namespace = {}
         namespace['__init__'] = init
         namespace['_ids'] = count(0)
-        namespace['supertypes'] = self.dependency_graph[type_name]
+        # namespace['_json_wrapper'] = self
+        # namespace.update(self.type_properties(type_name))
+        return type(type_name, self.supertypes(json_type), namespace)
 
-        return type(type_name, self.supertypes(type_name), namespace)
+    def generate_types_in_library(self, lib):
+        return (self.generate_type(ty) for ty in lib['types'])
 
-    def generate_all_py_types(self):
-        for t in map(str, toposort_flatten(self.dependency_graph)):
-            self.domain_types[t] = self.generate_py_type(t)
+    def generate_lib(self, lib):
+        module = imp.new_module(lib['id'])
+        for ty in self.generate_types_in_library(lib):
+            setattr(module, ty.__name__, ty)
+        return module
+
+    def generate_all_libs(self):
+        return {str(lib['id']): self.generate_lib(lib)
+                for lib in self.json_data['libraries']}
