@@ -18,7 +18,7 @@ Once nginx, virgo and tornado are running, the geppetto app can be accessed at
 [](http://main.gpt.org:9999/org.geppetto.frontend/). In order to circumvent
 javascript's same origin policies, we also need to set
 `document.domain='gpt.org'` **at both geppetto and jupyter** js. (See
-http://www.dyn-web.com/tutorials/iframes/postmessage/ for a possible
-alternative which don't require same domain). After that, jupyter can
+http://www.dyn-web.com/tutorials/iframes/postmessage/ for possible
+alternatives which don't require same domain). After that, jupyter can
 access geppetto's global namespace via `window.parent`.
 
