@@ -1,14 +1,15 @@
 import ipywidgets as widgets
 from traitlets import (Unicode, Instance, List)
 
-class RaisedButtonWidget(widgets.Widget):
-    _view_name = Unicode('RaisedButtonView').tag(sync=True)
-    _view_module = Unicode('raisedButton').tag(sync=True)
+class ComponentWidget(widgets.Widget):
+    _view_name = Unicode('ComponentView').tag(sync=True)
+    _view_module = Unicode('geppettoWidgets').tag(sync=True)
     
     widget_id = Unicode('').tag(sync=True)
+    component_name = Unicode('').tag(sync=True)
     
     def __init__(self, **kwargs):
-        super(RaisedButtonWidget, self).__init__(**kwargs)
+        super(ComponentWidget, self).__init__(**kwargs)
         self._click_handlers = widgets.CallbackDispatcher()
         self.on_msg(self._handle_button_msg)
         
@@ -34,15 +35,15 @@ class RaisedButtonWidget(widgets.Widget):
             Content of the msg.
         """
         if content.get('event', '') == 'click':
-            self._click_handlers(self)
+            self._click_handlers(self, content)
 
 class PanelWidget(widgets.Widget):
     _view_name = Unicode('PanelView').tag(sync=True)
-    _view_module = Unicode('panel').tag(sync=True)
+    _view_module = Unicode('geppettoWidgets').tag(sync=True)
     _model_name = Unicode('PanelModel').tag(sync=True)
-    _model_module = Unicode('panel').tag(sync=True)
+    _model_module = Unicode('geppettoWidgets').tag(sync=True)
         
-    items = List(Instance(RaisedButtonWidget)).tag(sync=True, **widgets.widget_serialization)    
+    items = List(Instance(ComponentWidget)).tag(sync=True, **widgets.widget_serialization)    
     
     def __init__(self, **kwargs):
         super(PanelWidget, self).__init__(**kwargs)
